@@ -188,14 +188,7 @@ end
 
 ---@param path string
 ---@return string
-function M.get_mocha_command(path)
-  local rootPath = M.find_node_modules_ancestor(path)
-  local mochaBinary = M.path.join(rootPath, "node_modules", ".bin", "mocha")
-
-  if M.path.exists(mochaBinary) then
-    return mochaBinary
-  end
-
+function M.get_mocha_command()
   return "mocha"
 end
 
@@ -240,9 +233,11 @@ function M.get_strategy_config(strategy, command, cwd)
         name = "Debug Mocha Tests",
         type = "pwa-node",
         request = "launch",
-        args = { unpack(command, 2) },
+        args = { "--timeout", 0, "--colors", unpack(command, 2) },
         runtimeExecutable = command[1],
         console = "integratedTerminal",
+        skipFiles = { "!<node_internals>/**" },
+        sourceMaps = true,
         internalConsoleOptions = "neverOpen",
         cwd = cwd or "${workspaceFolder}",
       }

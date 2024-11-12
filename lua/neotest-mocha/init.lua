@@ -37,12 +37,17 @@ local Adapter = { name = "neotest-mocha" }
 ---@return string | nil @Absolute root dir of test suite
 Adapter.root = lib.files.match_root_pattern "package.json"
 
-local default_is_test_file = util.create_test_file_extensions_matcher(
-  { "spec", "test" },
-  { "js", "mjs", "cjs", "jsx", "coffee", "ts", "tsx" }
-)
+local default_is_test_file = util.create_test_file_extensions_matcher({ "mocha" }, { "js", "mjs", "cjs" })
 
 local is_test_file = default_is_test_file
+
+local status = vim
+  .system({ "node", "-p", 'try { require.resolve("mocha") } catch { process.exit(1) }' }, { text = true })
+  :wait()
+local mochaInstalled = status.code == 0
+if not mochaInstalled then
+  logger.warn "Mocha not found in project"
+end
 
 ---@async
 ---@param file_path string
@@ -58,7 +63,7 @@ function Adapter.is_test_file(file_path)
   -- contains a package.json file with mocha installed. The latter is necessary to
   -- support monorepos where there are multiple parent directories with a package.json
   -- and the current file's position in the monorepo has to be taken into account as well
-  return is_test_file(file_path) and util.has_package_dependency(rootPath, "mocha")
+  return is_test_file(file_path) and mochaInstalled
 end
 
 ---Filter directories when searching for test files
