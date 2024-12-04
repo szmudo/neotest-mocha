@@ -14,6 +14,7 @@ local util = require "neotest-mocha.util"
 ---@field env? table<string, string>|fun(): table<string, string>
 ---@field cwd? string|fun(): string
 ---@field is_test_file? fun(path:string): boolean
+---@field filter_dir? fun(name: string, rel_path: string, root: string): boolean
 
 ---@type fun(path:string):string
 local get_mocha_command = util.get_mocha_command
@@ -66,14 +67,18 @@ function Adapter.is_test_file(file_path)
   return is_test_file(file_path) and mochaInstalled
 end
 
+local filter_dir = function(name)
+  return name ~= "node_modules"
+end
+
 ---Filter directories when searching for test files
 ---@async
 ---@param name string Name of directory
 ---@param rel_path string Path to directory, relative to root
 ---@param root string Root directory of project
 ---@return boolean
-function Adapter.filter_dir(name)
-  return name ~= "node_modules"
+function Adapter.filter_dir(...)
+  return filter_dir(...)
 end
 
 ---@param s string
@@ -290,6 +295,11 @@ setmetatable(Adapter, {
         return opts.cwd
       end
     end
+
+    if is_callable(opts.filter_dir) then
+      filter_dir = opts.filter_dir
+    end
+
     return Adapter
   end,
 })

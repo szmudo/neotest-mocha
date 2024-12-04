@@ -186,6 +186,18 @@ function M.find_package_json_ancestor(startpath)
   end)
 end
 
+function M.find_mocharc_ancestor(startpath)
+  return M.search_ancestors(startpath, function(path)
+    if M.path.is_file(M.path.join(path, ".mocharc.js")) then
+      return path
+    end
+  end)
+end
+
+function M.has_dotenv(path)
+  return M.path.is_file(M.path.join(path, ".env"))
+end
+
 ---@param path string
 ---@return string
 function M.get_mocha_command()
